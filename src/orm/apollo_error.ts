@@ -23,7 +23,8 @@ const AERROR_TYPES = {
     msg: '%s',
   },
   'model.tablecreation.invalidname': {
-    msg: 'Table names only allow alphanumeric and _ and must start with a letter, got %s',
+    msg:
+      'Table names only allow alphanumeric and _ and must start with a letter, got %s',
   },
   'model.tablecreation.dbschemaquery': {
     msg: 'Error while retrieveing Schema of DB Table "%s"',
@@ -59,7 +60,8 @@ const AERROR_TYPES = {
     msg: 'Invalid field relation: unknown operator: "%s"',
   },
   'model.find.invalidexpr': {
-    msg: '$expr must be an object containing the index name as string and query as string.',
+    msg:
+      '$expr must be an object containing the index name as string and query as string.',
   },
   'model.find.invalidsolrquery': {
     msg: '$solr_query must be a string containing the query for solr.',
@@ -83,10 +85,12 @@ const AERROR_TYPES = {
     msg: 'Invalid $in query. $in must be an array',
   },
   'model.find.invalidcontainsop': {
-    msg: 'Invalid $contains query, $contains operator is only valid for indexed collections',
+    msg:
+      'Invalid $contains query, $contains operator is only valid for indexed collections',
   },
   'model.find.invalidcontainskeyop': {
-    msg: 'Invalid $contains_key query, $contains_key operator is only valid for indexed map collections',
+    msg:
+      'Invalid $contains_key query, $contains_key operator is only valid for indexed map collections',
   },
   'model.find.invalidtoken': {
     msg: 'Invalid $token query. $token must be an object with operator values',
@@ -161,19 +165,18 @@ const AERROR_TYPES = {
 
 const ERR_NAME_PREFIX = 'apollo';
 
-const buildError = function f(...args) {
-  const argsarray = args;
-  const name = argsarray.length ? argsarray.shift() : '_none_given_';
+export const buildError = (...args) => {
+  const argsArray = args;
+  const name = argsArray.length ? argsArray.shift() : '_none_given_';
 
   const errorTemplate = AERROR_TYPES[name] || AERROR_TYPES.unspecified;
-  const errorMsg = argsarray.length ?
-    util.format.apply(this, [errorTemplate.msg].concat(argsarray)) :
-    errorTemplate.msg;
+  const errorMsg = argsArray.length
+    ? util.format.apply(this, [errorTemplate.msg].concat(argsArray))
+    : errorTemplate.msg;
 
   const error = new Error(errorMsg);
-  error.name = (ERR_NAME_PREFIX ? util.format('%s.', ERR_NAME_PREFIX) : '') + name;
+  error.name =
+    (ERR_NAME_PREFIX ? util.format('%s.', ERR_NAME_PREFIX) : '') + name;
 
   return error;
 };
-
-module.exports = buildError;

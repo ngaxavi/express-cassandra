@@ -6,8 +6,8 @@ const path = require('path');
 const jsonStream = require('JSONStream');
 const debug = require('debug')('express-cassandra');
 
-const importer = {
-  buildTableQueryForDataRow(keyspace, tableInfo, row) {
+export class Importer {
+  static buildTableQueryForDataRow(keyspace, tableInfo, row) {
     row = _.omitBy(row, (item) => (item === null));
     let query = util.format('INSERT INTO "%s"."%s" ("%s") VALUES (?%s)', keyspace, tableInfo.name, _.keys(row).join('","'), _.repeat(',?', _.keys(row).length - 1));
     let params = _.values(row);
@@ -35,9 +35,9 @@ const importer = {
       return param;
     });
     return { query, params };
-  },
+  }
 
-  processTableImport(systemClient, fixtureDirectory, keyspace, table, batchSize) {
+  static processTableImport(systemClient, fixtureDirectory, keyspace, table, batchSize) {
     return new Promise((resolve, reject) => {
       debug('==================================================');
       debug(`Reading metadata for table: ${table}`);
@@ -121,7 +121,5 @@ const importer = {
           reject(err);
         });
     });
-  },
-};
-
-module.exports = importer;
+  }
+}

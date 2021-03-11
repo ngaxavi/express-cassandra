@@ -1,13 +1,10 @@
 const _ = require('lodash');
 const debug = require('debug')('express-cassandra');
 
-const JanusGraphBuilder = function f(client, config) {
-  this._client = client;
-  this._config = config;
-};
+export class JanusGraphBuilder {
+  constructor(private readonly _client, private readonly _config: any = {}) {}
 
-JanusGraphBuilder.prototype = {
-  create_graph(graphName, callback) {
+  createGraph(graphName, callback) {
     debug('creating janus graph: %s', graphName);
     const script = `
       Map<String, Object> map = new HashMap<String, Object>();
@@ -38,9 +35,9 @@ JanusGraphBuilder.prototype = {
 
       callback(null, results);
     });
-  },
+  }
 
-  check_graph_exist(graphName, callback) {
+  checkGraphExist(graphName, callback) {
     debug('check for janus graph: %s', graphName);
     const script = `
       ConfiguredGraphFactory.getGraphNames();
@@ -58,25 +55,25 @@ JanusGraphBuilder.prototype = {
       }
       callback(null, false);
     });
-  },
+  }
 
-  assert_graph(graphName, callback) {
-    this.check_graph_exist(graphName, (err, exist) => {
+  assertGraph(graphName, callback) {
+    this.checkGraphExist(graphName, (err, exist) => {
       if (err) {
         callback(err);
         return;
       }
 
       if (!exist) {
-        this.create_graph(graphName, callback);
+        this.createGraph(graphName, callback);
         return;
       }
 
       callback();
     });
-  },
+  }
 
-  drop_graph(graphName, callback) {
+  dropGraph(graphName, callback) {
     debug('removing janus graph: %s', graphName);
     const script = `
       ConfiguredGraphFactory.drop(graphName);
@@ -92,9 +89,9 @@ JanusGraphBuilder.prototype = {
 
       callback(null, results);
     });
-  },
+  }
 
-  put_indexes(graphName, mappingName, indexes, callback) {
+  putIndexes(graphName, mappingName, indexes, callback) {
     debug('syncing janus graph indexes for: %s', mappingName);
     let script = `
       graph = ConfiguredGraphFactory.open(graphName);
@@ -176,9 +173,9 @@ JanusGraphBuilder.prototype = {
 
       callback(null, results);
     });
-  },
+  }
 
-  put_mapping(graphName, mappingName, mappingBody, callback) {
+  putMapping(graphName, mappingName, mappingBody, callback) {
     debug('syncing janus graph mapping: %s', mappingName);
     let script = `
       graph = ConfiguredGraphFactory.open(graphName);
@@ -208,13 +205,11 @@ JanusGraphBuilder.prototype = {
       }
 
       if (Object.keys(mappingBody.indexes).length > 0) {
-        this.put_indexes(graphName, mappingName, mappingBody.indexes, callback);
+        this.putIndexes(graphName, mappingName, mappingBody.indexes, callback);
         return;
       }
 
       callback(null, results);
     });
-  },
-};
-
-module.exports = JanusGraphBuilder;
+  }
+}

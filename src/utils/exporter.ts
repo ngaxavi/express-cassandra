@@ -4,8 +4,8 @@ const path = require('path');
 const jsonStream = require('JSONStream');
 const debug = require('debug')('express-cassandra');
 
-const exporter = {
-  processTableExport(systemClient, fixtureDirectory, keyspace, table) {
+export class Exporter {
+  static processTableExport(systemClient, fixtureDirectory, keyspace, table) {
     debug('==================================================');
     debug(`Reading table: ${table}`);
     return new Promise((resolve, reject) => {
@@ -53,7 +53,5 @@ const exporter = {
         writeStream.end();
       });
     });
-  },
-};
-
-module.exports = exporter;
+  }
+}

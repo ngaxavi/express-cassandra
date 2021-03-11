@@ -1,27 +1,26 @@
 const util = require('util');
-
 const debug = require('debug')('express-cassandra');
 
-const KeyspaceBuilder = function f(client) {
-  this._client = client;
-};
+export default class KeyspaceBuilder {
+  constructor(private readonly _client) {}
 
-KeyspaceBuilder.prototype = {
-  generate_replication_text(replicationOptions) {
+  generateReplicationText(replicationOptions) {
     if (typeof replicationOptions === 'string') {
       return replicationOptions;
     }
 
     const properties = [];
-    Object.keys(replicationOptions).forEach((k) => {
+    Object.keys(replicationOptions).forEach((k: string) => {
       properties.push(util.format("'%s': '%s'", k, replicationOptions[k]));
     });
 
     return util.format('{%s}', properties.join(','));
-  },
+  }
 
-  create_keyspace(keyspaceName, defaultReplicationStrategy, callback) {
-    const replicationText = this.generate_replication_text(defaultReplicationStrategy);
+  createKeyspace(keyspaceName, defaultReplicationStrategy, callback) {
+    const replicationText = this.generateReplicationText(
+      defaultReplicationStrategy,
+    );
 
     const query = util.format(
       'CREATE KEYSPACE IF NOT EXISTS "%s" WITH REPLICATION = %s;',
@@ -34,10 +33,12 @@ KeyspaceBuilder.prototype = {
         callback(err);
       });
     });
-  },
+  }
 
-  alter_keyspace(keyspaceName, defaultReplicationStrategy, callback) {
-    const replicationText = this.generate_replication_text(defaultReplicationStrategy);
+  alterKeyspace(keyspaceName, defaultReplicationStrategy, callback) {
+    const replicationText = this.generateReplicationText(
+      defaultReplicationStrategy,
+    );
 
     const query = util.format(
       'ALTER KEYSPACE "%s" WITH REPLICATION = %s;',
@@ -48,13 +49,15 @@ KeyspaceBuilder.prototype = {
     this._client.execute(query, (err) => {
       this._client.shutdown(() => {
         // eslint-disable-next-line no-console
-        console.warn('WARN: KEYSPACE ALTERED! Run the `nodetool repair` command on each affected node.');
+        console.warn(
+          'WARN: KEYSPACE ALTERED! Run the `nodetool repair` command on each affected node.',
+        );
         callback(err);
       });
     });
-  },
+  }
 
-  get_keyspace(keyspaceName, callback) {
+  getKeyspace(keyspaceName, callback) {
     const query = util.format(
       "SELECT * FROM system_schema.keyspaces WHERE keyspace_name = '%s';",
       keyspaceName,
@@ -75,8 +78,5 @@ KeyspaceBuilder.prototype = {
 
       callback();
     });
-  },
-
-};
-
-module.exports = KeyspaceBuilder;
+  }
+}

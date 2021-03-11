@@ -3,38 +3,62 @@ const _ = require('lodash');
 
 const debug = require('debug')('express-cassandra');
 
-const UdfBuilder = function f(client) {
-  this._client = client;
-};
+export class UdfBuilder {
+  constructor(private readonly _client) {}
 
-UdfBuilder.prototype = {
-  validate_definition(functionName, functionDefinition) {
+  validateDefinition(functionName, functionDefinition) {
     if (!functionDefinition.returnType) {
-      throw (new Error(util.format('No returnType defined for user defined function: %s', functionName)));
+      throw new Error(
+        util.format(
+          'No returnType defined for user defined function: %s',
+          functionName,
+        ),
+      );
     }
     if (!functionDefinition.language) {
-      throw (new Error(util.format('No language defined for user defined function: %s', functionName)));
+      throw new Error(
+        util.format(
+          'No language defined for user defined function: %s',
+          functionName,
+        ),
+      );
     }
     if (!functionDefinition.code) {
-      throw (new Error(util.format('No code defined for user defined function: %s', functionName)));
+      throw new Error(
+        util.format(
+          'No code defined for user defined function: %s',
+          functionName,
+        ),
+      );
     }
-    if (functionDefinition.inputs && !_.isPlainObject(functionDefinition.inputs)) {
-      throw (new Error(util.format('inputs must be an object for user defined function: %s', functionName)));
+    if (
+      functionDefinition.inputs &&
+      !_.isPlainObject(functionDefinition.inputs)
+    ) {
+      throw new Error(
+        util.format(
+          'inputs must be an object for user defined function: %s',
+          functionName,
+        ),
+      );
     }
     if (_.isArray(functionDefinition.inputs)) {
-      throw (new Error(util.format('inputs must be an object, not an array for user defined function: %s', functionName)));
+      throw new Error(
+        util.format(
+          'inputs must be an object, not an array for user defined function: %s',
+          functionName,
+        ),
+      );
     }
-  },
+  }
 
-  create_udf(functionName, functionDefinition, callback) {
+  createUdf(functionName, functionDefinition, callback) {
     const udfInputs = [];
     if (functionDefinition.inputs) {
       Object.keys(functionDefinition.inputs).forEach((input) => {
-        udfInputs.push(util.format(
-          '%s %s',
-          input,
-          functionDefinition.inputs[input],
-        ));
+        udfInputs.push(
+          util.format('%s %s', input, functionDefinition.inputs[input]),
+        );
       });
     }
     const query = util.format(
@@ -49,9 +73,9 @@ UdfBuilder.prototype = {
     this._client.execute(query, (err) => {
       callback(err);
     });
-  },
+  }
 
-  get_udf(functionName, keyspaceName, callback) {
+  getUdf(functionName, keyspaceName, callback) {
     const query = util.format(
       "SELECT * FROM system_schema.functions WHERE keyspace_name = '%s' AND function_name = '%s';",
       keyspaceName,
@@ -71,7 +95,5 @@ UdfBuilder.prototype = {
 
       callback();
     });
-  },
-};
-
-module.exports = UdfBuilder;
+  }
+}

@@ -16,8 +16,8 @@ const normalizeTypeDef = (typeDef) => {
   return formattedTypeDef;
 };
 
-const normalizer = {
-  normalize_replication_option(replicationOptions) {
+export class Normalizer {
+  static normalizeReplicationOption(replicationOptions) {
     const normalizedReplicationOptions = replicationOptions;
     Object.keys(normalizedReplicationOptions).forEach((key) => {
       if (key === 'class') {
@@ -27,10 +27,10 @@ const normalizer = {
       normalizedReplicationOptions[key] = parseInt(normalizedReplicationOptions[key], 10);
     });
     return normalizedReplicationOptions;
-  },
+  }
 
-  normalize_query_option(options) {
-    const queryOptions = { prepare: options.prepare };
+  static normalizeQueryOption(options) {
+    const queryOptions: any = { prepare: options.prepare };
     if (options.consistency) queryOptions.consistency = options.consistency;
     if (options.fetchSize) queryOptions.fetchSize = options.fetchSize;
     if (options.autoPage) queryOptions.autoPage = options.autoPage;
@@ -48,13 +48,13 @@ const normalizer = {
     if (options.routingNames) queryOptions.routingNames = options.routingNames;
     if (options.timestamp) queryOptions.timestamp = options.timestamp;
     return queryOptions;
-  },
+  }
 
-  normalize_user_defined_type(fieldType) {
+  static normalizeUserDefinedType(fieldType) {
     return normalizeTypeDef(fieldType);
-  },
+  }
 
-  normalize_primary_key(outputSchema) {
+  static normalizePrimaryKey(outputSchema) {
     if (outputSchema.key && typeof outputSchema.key[0] === 'string') {
       outputSchema.key[0] = [outputSchema.key[0]];
     }
@@ -70,9 +70,9 @@ const normalizer = {
         outputSchema.clustering_order[outputSchema.key[i]] = outputSchema.clustering_order[outputSchema.key[i]].toUpperCase();
       }
     }
-  },
+  }
 
-  normalize_fields(modelSchema, outputSchema) {
+  static normalizeFields(modelSchema, outputSchema) {
     Object.keys(outputSchema.fields).forEach((fieldName) => {
       if (typeof (outputSchema.fields[fieldName]) === 'string') {
         outputSchema.fields[fieldName] = { type: outputSchema.fields[fieldName] };
@@ -110,9 +110,9 @@ const normalizer = {
         outputSchema.fields[fieldName].static = true;
       }
     });
-  },
+  }
 
-  normalize_materialized_views(outputSchema) {
+  static normalizeMaterializedViews(outputSchema) {
     if (!outputSchema.materialized_views) {
       outputSchema.materialized_views = {};
     }
@@ -165,9 +165,9 @@ const normalizer = {
         delete outputMView.filters;
       }
     });
-  },
+  }
 
-  normalize_indexes(outputSchema) {
+  static normalizeIndexes(outputSchema) {
     if (!outputSchema.indexes) {
       outputSchema.indexes = [];
     }
@@ -182,9 +182,9 @@ const normalizer = {
       }
     }
     outputSchema.indexes.sort(arraySort);
-  },
+  }
 
-  normalize_custom_indexes(outputSchema) {
+  static normalizeCustomIndexes(outputSchema) {
     if (outputSchema.custom_index) {
       outputSchema.custom_indexes = [outputSchema.custom_index];
       delete outputSchema.custom_index;
@@ -210,9 +210,9 @@ const normalizer = {
     }
 
     outputSchema.custom_indexes = _.remove(outputSchema.custom_indexes, (cindex) => (cindex.on !== 'solr_query'));
-  },
+  }
 
-  normalize_model_schema(modelSchema) {
+  static normalizeModelSchema(modelSchema) {
     const outputSchema = _.cloneDeep(modelSchema, true);
     const normalizableSchemaProperties = [
       'fields', 'key', 'clustering_order', 'materialized_views', 'indexes', 'custom_index', 'custom_indexes',
@@ -224,16 +224,16 @@ const normalizer = {
       }
     });
 
-    this.normalize_fields(modelSchema, outputSchema);
-    this.normalize_primary_key(outputSchema);
-    this.normalize_materialized_views(outputSchema);
-    this.normalize_indexes(outputSchema);
-    this.normalize_custom_indexes(outputSchema);
+    this.normalizeFields(modelSchema, outputSchema);
+    this.normalizePrimaryKey(outputSchema);
+    this.normalizeMaterializedViews(outputSchema);
+    this.normalizeIndexes(outputSchema);
+    this.normalizeCustomIndexes(outputSchema);
 
     return outputSchema;
-  },
+  }
 
-  remove_dependent_views_from_normalized_schema(normalizedDBSchema, dbSchema, fieldName) {
+  static removeDependentViewsFromNormalizedSchema(normalizedDBSchema, dbSchema, fieldName) {
     const dependentViews = [];
     Object.keys(normalizedDBSchema.materialized_views).forEach((dbViewName) => {
       if (normalizedDBSchema.materialized_views[dbViewName].select.includes(fieldName)) {
@@ -250,7 +250,5 @@ const normalizer = {
     dependentViews.forEach((viewName) => {
       normalizedDBSchema.materialized_views[viewName] = {};
     });
-  },
-};
-
-module.exports = normalizer;
+  }
+}

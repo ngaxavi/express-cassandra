@@ -2,19 +2,13 @@ const util = require('util');
 
 const debug = require('debug')('express-cassandra');
 
-const UdtBuilder = function f(client) {
-  this._client = client;
-};
+export class UdtBuilder {
+  constructor(private readonly _client) {}
 
-UdtBuilder.prototype = {
-  create_udt(typeName, typeDef, callback) {
+  createUdt(typeName, typeDef, callback) {
     const udtFields = [];
     Object.keys(typeDef).forEach((field) => {
-      udtFields.push(util.format(
-        '"%s" %s',
-        field,
-        typeDef[field],
-      ));
+      udtFields.push(util.format('"%s" %s', field, typeDef[field]));
     });
     const query = util.format(
       'CREATE TYPE IF NOT EXISTS "%s" (%s);',
@@ -25,9 +19,9 @@ UdtBuilder.prototype = {
     this._client.execute(query, (err) => {
       callback(err);
     });
-  },
+  }
 
-  get_udt(typeName, keyspaceName, callback) {
+  getUdt(typeName, keyspaceName, callback) {
     const query = util.format(
       "SELECT * FROM system_schema.types WHERE keyspace_name = '%s' AND type_name = '%s';",
       keyspaceName,
@@ -47,7 +41,5 @@ UdtBuilder.prototype = {
 
       callback();
     });
-  },
-};
-
-module.exports = UdtBuilder;
+  }
+}
